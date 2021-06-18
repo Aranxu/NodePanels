@@ -1,5 +1,5 @@
 # NodePanels
-https://www.nodepanels.com
+https://nodepanels.com
 
 >一款使用简单功能全面的多服务器监控面板，一条指令即可对你的服务器了如指掌
 
