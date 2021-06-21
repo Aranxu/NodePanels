@@ -4,9 +4,9 @@
 PROBE_PATH=/usr/local/nodepanels
 PROBE_NAME=nodepanels-probe
 DAEMON_NAME=nodepanels-daemon
-SH_VERSION=v1.0.1
+SH_VERSION=v1.0.2
 PROBE_VERSION=v1.0.1
-UPDATE_TIME=2021.05.24
+UPDATE_TIME=2021.06.20
 
 echo "*******************************************************************"
 echo "|                        __                            __         |"
@@ -70,12 +70,24 @@ mkdir -p ${PROBE_PATH}
 
 #Download probe
 echo "$(date +"%Y-%m-%d %T") Downloading probe ......"
-wget -nv -o /dev/stdout -O ${PROBE_PATH}/${PROBE_NAME} --no-check-certificate https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/nodepanels-probe
+
+if [ `arch` = "aarch64" ] ; then
+   wget -nv -o /dev/stdout -O ${PROBE_PATH}/${PROBE_NAME} --no-check-certificate https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/arm/nodepanels-probe
+else
+   wget -nv -o /dev/stdout -O ${PROBE_PATH}/${PROBE_NAME} --no-check-certificate https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/x86/nodepanels-probe
+fi
+
 echo "$(date +"%Y-%m-%d %T") Download probe success"
 
 #Download daemon
 echo "$(date +"%Y-%m-%d %T") Downloading daemon ......"
-wget -nv -o /dev/stdout -O ${PROBE_PATH}/${DAEMON_NAME} --no-check-certificate https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/nodepanels-daemon
+
+if [ `arch` = "aarch64" ] ; then
+   wget -nv -o /dev/stdout -O ${PROBE_PATH}/${DAEMON_NAME} --no-check-certificate https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/arm/nodepanels-daemon
+else
+   wget -nv -o /dev/stdout -O ${PROBE_PATH}/${DAEMON_NAME} --no-check-certificate https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/x86/nodepanels-daemon
+fi
+
 echo "$(date +"%Y-%m-%d %T") Download daemon success"
 
 #Grant authority
