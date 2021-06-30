@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/kardianos/service"
 	"nodepanels/config"
 	"nodepanels/probe"
 	"nodepanels/util"
@@ -12,8 +13,69 @@ import (
 	"time"
 )
 
+//go:generate goversioninfo -icon=favicon.ico
+
 func main() {
 
+	serConfig := &service.Config{
+		Name:        "Nodepanels-probe",
+		DisplayName: "Nodepanels-probe",
+		Description: "Nodepanels探针进程",
+	}
+
+	pro := &Program{}
+	s, err := service.New(pro, serConfig)
+	if err != nil {
+		fmt.Println(err, "Create service failed")
+	}
+
+	if len(os.Args) > 1 {
+		if os.Args[1] == "install" {
+			err = s.Install()
+			if err != nil {
+				fmt.Println("Install failed", err)
+			} else {
+				fmt.Println("Install success")
+			}
+			return
+		}
+
+		if os.Args[1] == "uninstall" {
+			err = s.Uninstall()
+			if err != nil {
+				fmt.Println("Uninstall err", err)
+			} else {
+				fmt.Println("Uninstall success")
+			}
+			return
+		}
+	}
+
+	err = s.Run()
+	if err != nil {
+		fmt.Println("Run nodepanels-probe failed", err)
+	}
+
+}
+
+type Program struct{}
+
+func (p *Program) Start(s service.Service) error {
+	fmt.Println("nodepanels-probe start")
+	go p.run()
+	return nil
+}
+
+func (p *Program) run() {
+	StartProbe()
+}
+
+func (p *Program) Stop(s service.Service) error {
+	fmt.Println("nodepanels-probe stop")
+	return nil
+}
+
+func StartProbe() {
 	util.LogFile, _ = os.OpenFile(util.Exepath()+"/log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	util.LogDebug("\n  _   _           _                             _     " +
 		"\n | \\ | |         | |                           | |    " +
@@ -34,7 +96,7 @@ func main() {
 		sendServerInfo()
 
 		//与代理服务器建立websocket连接
-		websocket.CreateAgentConn()
+		go websocket.CreateAgentConn()
 
 		//循环发送服务器监控数据
 		for {

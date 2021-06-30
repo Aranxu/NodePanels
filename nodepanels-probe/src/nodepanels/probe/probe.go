@@ -7,6 +7,7 @@ import (
 	"nodepanels/util"
 	"os"
 	"os/exec"
+	"runtime"
 )
 
 func UpdateProbe(url string) {
@@ -27,11 +28,17 @@ func UpdateProbe(url string) {
 	defer res.Body.Close()
 	defer newFile.Close()
 
-	os.Chmod(util.Exepath()+"/nodepanels-probe.temp", 0777)
+	if runtime.GOOS == "windows" {
 
-	os.Rename(util.Exepath()+"/nodepanels-probe.temp", util.Exepath()+"/nodepanels-probe")
+		exec.Command("cmd", "/C", "net stop Nodepanels-probe").Output()
+	}
+	if runtime.GOOS == "linux" {
+		os.Chmod(util.Exepath()+"/nodepanels-probe.temp", 0777)
 
-	exec.Command("sh", "-c", "service nodepanels restart").Output()
+		os.Rename(util.Exepath()+"/nodepanels-probe.temp", util.Exepath()+"/nodepanels-probe")
+
+		exec.Command("sh", "-c", "service nodepanels restart").Output()
+	}
 
 }
 

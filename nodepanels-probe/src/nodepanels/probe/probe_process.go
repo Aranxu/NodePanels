@@ -196,8 +196,10 @@ func GetProcessInfo(pid int32) string {
 		processInfo.CreateTime = createTime
 		processInfo.Foreground = foreground
 		processInfo.Nice = nice
-		processInfo.NumCtxSwitchesVoluntary = numCtxSwitches.Voluntary
-		processInfo.NumCtxSwitchesInvoluntary = numCtxSwitches.Involuntary
+		if numCtxSwitches != nil {
+			processInfo.NumCtxSwitchesVoluntary = numCtxSwitches.Voluntary
+			processInfo.NumCtxSwitchesInvoluntary = numCtxSwitches.Involuntary
+		}
 		processInfo.NumThreads = numThreads
 		processInfo.OpenFiles = len(openFiles)
 		processInfo.Status = status[0]

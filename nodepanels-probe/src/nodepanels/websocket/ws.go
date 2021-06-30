@@ -122,7 +122,9 @@ func handleMsg(message string) {
 		}
 	}()
 
-	util.LogDebug("Receive message from agent : " + message)
+	if message != "pong" {
+		util.LogDebug("Receive message from agent : " + message)
+	}
 
 	messageMap := make(map[string]string)
 	json.Unmarshal([]byte(message), &messageMap)
