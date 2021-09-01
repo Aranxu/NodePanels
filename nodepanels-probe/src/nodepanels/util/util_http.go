@@ -4,8 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
+	"nodepanels/config"
+	"os"
 	"strings"
 	"unsafe"
 )
@@ -54,7 +57,7 @@ func PostJson(url string, jsonParam []byte) string {
 	return *str
 }
 
-func SendCommandReceive(commandUUID string, commandIp string, msg string) {
+func SendCommandReceive(commandUUID string, msg string) {
 
 	defer func() {
 		err := recover()
@@ -68,7 +71,7 @@ func SendCommandReceive(commandUUID string, commandIp string, msg string) {
 	resultMap["commandUUID"] = commandUUID
 	resultMap["msg"] = msg
 	result, _ := json.Marshal(resultMap)
-	PostJson("https://"+commandIp+"/command/receive", result)
+	PostJson(config.AgentUrl+"/command/receive", result)
 }
 
 func Get(url string) string {
@@ -85,4 +88,20 @@ func Get(url string) string {
 	bytes, _ := ioutil.ReadAll(resp.Body)
 	resp.Body.Close()
 	return string(bytes)
+}
+
+func Download(url string, target string) {
+
+	defer func() {
+		err := recover()
+		if err != nil {
+			LogError("Download file error : " + fmt.Sprintf("%s", err))
+		}
+	}()
+
+	res, _ := http.Get(url)
+	newFile, _ := os.Create(target)
+	io.Copy(newFile, res.Body)
+	defer res.Body.Close()
+	defer newFile.Close()
 }

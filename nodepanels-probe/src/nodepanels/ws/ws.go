@@ -1,10 +1,9 @@
-package websocket
+package ws
 
 import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
-	"math/rand"
 	"nodepanels/config"
 	"nodepanels/probe"
 	"nodepanels/util"
@@ -27,12 +26,12 @@ func CreateAgentConn() {
 TryConn:
 
 	if tryCount != 0 {
-		time.Sleep(time.Second * time.Duration(rand.Int63n(90-30)+30))
+		time.Sleep(time.Second * 10)
 	}
 	tryCount++
 
 	util.LogDebug("Try to establish a connection with the proxy server...")
-	wsConnect, _, err := dialer.Dial("wss://"+config.WsUrl+"/ws/v1/"+util.GetHostId(), nil)
+	wsConnect, _, err := dialer.Dial(config.WsUrl+"/ws/v1/"+util.GetHostId(), nil)
 	if nil != err {
 		util.LogError("Failed to connect to the proxy server, trying to reconnect... ")
 		goto TryConn
@@ -51,7 +50,7 @@ func wsHeartBeat(connect *websocket.Conn) {
 	defer func() {
 		err := recover()
 		if err != nil {
-			util.LogError("Send websocket heartbeat error :" + fmt.Sprintf("%s", err))
+			util.LogError("Send ws heartbeat error :" + fmt.Sprintf("%s", err))
 		}
 	}()
 
@@ -61,7 +60,7 @@ func wsHeartBeat(connect *websocket.Conn) {
 			return
 		}
 
-		sendMsg(connect, "1")
+		SendMsg(connect, "ping")
 		time.Sleep(30000 * time.Millisecond)
 	}
 }
@@ -84,22 +83,23 @@ func readAgentMsg(connect *websocket.Conn) {
 
 		messageType, messageData, err := connect.ReadMessage()
 		if nil != err {
-			util.LogError("Failed to connect to the proxy server, trying to reconnect... ")
+			util.LogError("Failed to connect to the proxy server：" + fmt.Sprintf("%s", err))
+			util.LogError("Trying to reconnect... ")
 			connect = nil
 		}
 
 		switch messageType {
 		case websocket.TextMessage:
-			handleMsg(string(messageData))
+			go handleMsg(connect, string(messageData))
 		case websocket.BinaryMessage:
 
 		default:
-			sendMsg(connect, "bad request")
+			SendMsg(connect, "bad request")
 		}
 	}
 }
 
-func sendMsg(connect *websocket.Conn, msg string) {
+func SendMsg(connect *websocket.Conn, msg string) {
 
 	defer func() {
 		err := recover()
@@ -113,7 +113,7 @@ func sendMsg(connect *websocket.Conn, msg string) {
 	}
 }
 
-func handleMsg(message string) {
+func handleMsg(connect *websocket.Conn, message string) {
 
 	defer func() {
 		err := recover()
@@ -123,34 +123,38 @@ func handleMsg(message string) {
 	}()
 
 	if message != "pong" {
-		util.LogDebug("Receive message from agent : " + message)
+
+		command := Command{}
+		json.Unmarshal([]byte(message), &command)
+
+		if command.Tool.Type == "probe-version" {
+			util.LogInfo("[COMMAND] Version probe")
+			SendMsg(connect, "{\"toolType\":\"probe-version\",\"serverId\":\""+util.GetHostId()+"\",\"msg\":\""+config.Version+"\"}")
+			SendMsg(connect, "{\"toolType\":\"probe-version\",\"serverId\":\""+util.GetHostId()+"\",\"msg\":\"END\"}")
+		} else if command.Tool.Type == "probe-upgrade-back" {
+			probe.Upgrade(command.Tool.Param)
+		} else if command.Tool.Type == "probe-shutdown-back" {
+			probe.ShutDown()
+		} else if command.Tool.Type == "probe-cmd-back" {
+			probe.ExeCmd(command.Tool.Param)
+		} else {
+			ExeScript(connect, command)
+		}
 	}
 
-	messageMap := make(map[string]string)
-	json.Unmarshal([]byte(message), &messageMap)
+}
 
-	command := messageMap["command"]
+type Command struct {
+	ServerId string      `json:"serverId"`
+	Page     string      `json:"page"`
+	Tool     CommandTool `json:"tool"`
+}
 
-	commandUUID := messageMap["commandUUID"]
-
-	serverIp := messageMap["serverIp"]
-
-	param := messageMap["param"]
-	if command == "update" {
-		probe.UpdateProbe(param)
-	} else if command == "version" {
-		util.SendCommandReceive(commandUUID, serverIp, config.Version)
-	} else if command == "restart" {
-		probe.RebootProbe()
-	} else if command == "processList" {
-		util.SendCommandReceive(commandUUID, serverIp, probe.GetProcessesList())
-	} else if command == "setWarningRule" {
-		probe.SetWarningRule(param)
-	} else if command == "getProcessCmd" {
-		util.SendCommandReceive(commandUUID, serverIp, probe.GetProcessCmdByPid(util.String2int32(param)))
-	} else if command == "setMonitorProcessRule" {
-		probe.SetMonitorProcessRule(param)
-	} else if command == "getProcessInfo" {
-		util.SendCommandReceive(commandUUID, serverIp, probe.GetProcessInfo(util.String2int32(param)))
-	}
+type CommandTool struct {
+	Version string `json:"version"`
+	Name    string `json:"name"`
+	Url     string `json:"url"`
+	Type    string `json:"type"`
+	Param   string `json:"param"`
+	Timeout int    `json:"timeout"`
 }

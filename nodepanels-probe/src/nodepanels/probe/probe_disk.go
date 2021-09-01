@@ -28,7 +28,6 @@ func GetDiskInfo(info ProbeInfo) ProbeInfo {
 		diskInfo.Mountpoint = val.Mountpoint
 		diskInfo.Fstype = val.Fstype
 		diskInfo.Total = usage.Total
-		diskInfo.Used = usage.Used
 
 		info.DiskInfo = append(info.DiskInfo, diskInfo)
 	}
@@ -60,10 +59,18 @@ func GetDiskUsage(probeUsage ProbeUsage) ProbeUsage {
 
 	for key, val := range ioData {
 
+		read := uint64(0)
+		write := uint64(0)
+
+		if val.ReadBytes >= diskInitReadBytes[key] {
+			read = val.ReadBytes - diskInitReadBytes[key]
+			write = val.WriteBytes - diskInitWriteBytes[key]
+		}
+
 		disk := Disk{
 			Name:  key,
-			Read:  val.ReadBytes - diskInitReadBytes[key],
-			Write: val.WriteBytes - diskInitWriteBytes[key],
+			Read:  read,
+			Write: write,
 		}
 
 		diskInitReadBytes[key] = val.ReadBytes

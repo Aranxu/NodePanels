@@ -1,0 +1,13 @@
+before:
+  hooks:
+builds:
+  - env:
+      - CGO_ENABLED=0
+    id: "nodepanels-probe"
+    binary: "nodepanels-probe-{{ .Os }}-{{ .Arch }}"
+    goos:
+      - linux
+      - windows
+    goarch:
+      - 386
+      - amd64

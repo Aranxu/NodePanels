@@ -69,15 +69,15 @@ func GetDns(privateIp string) string {
 }
 
 func GetApiIp() string {
-	return Get("https://" + config.ApiUrl + "/api/getApiIp")
+	return Get(config.ApiUrl + "/api/getApiIp")
 }
 
 func GetWsIp() string {
-	return Get("https://" + config.WsUrl + "/api/getWsIp")
+	return Get(config.WsUrl + "/api/getWsIp")
 }
 
 func GetAgentIp() string {
-	return Get("https://" + config.AgentUrl + "/api/getAgentIp")
+	return Get(config.AgentUrl + "/api/getAgentIp")
 }
 
 func GetDomainIp(domain string) string {

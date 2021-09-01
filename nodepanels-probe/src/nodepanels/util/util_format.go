@@ -28,6 +28,11 @@ func String2int32(str string) int32 {
 	return int32(i)
 }
 
+func String2int64(str string) int64 {
+	i, _ := strconv.Atoi(str)
+	return int64(i)
+}
+
 func Float642string(f float64) string {
 	return strconv.FormatFloat(f, 'f', -1, 64)
 }

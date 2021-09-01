@@ -1,13 +1,10 @@
 package probe
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/shirou/gopsutil/v3/host"
 	"github.com/shirou/gopsutil/v3/process"
 	"nodepanels/util"
-	"sort"
-	"strings"
 )
 
 func GetProcessUsage(probeUsage ProbeUsage) ProbeUsage {
@@ -57,16 +54,24 @@ func GetProcessUsage(probeUsage ProbeUsage) ProbeUsage {
 
 			if _, ok := initProcessUsageMap[cmd]; ok {
 				if ioData != nil {
-					processUsage.DiskRead = ioData.ReadBytes - initProcessUsageMap[cmd].DiskRead
-					processUsage.DiskWrite = ioData.WriteBytes - initProcessUsageMap[cmd].DiskWrite
+					if ioData.ReadBytes > initProcessUsageMap[cmd].DiskRead {
+						processUsage.DiskRead = ioData.ReadBytes - initProcessUsageMap[cmd].DiskRead
+					} else {
+						processUsage.DiskRead = 0
+					}
+					if ioData.WriteBytes > initProcessUsageMap[cmd].DiskWrite {
+						processUsage.DiskWrite = ioData.WriteBytes - initProcessUsageMap[cmd].DiskWrite
+					} else {
+						processUsage.DiskWrite = 0
+					}
 				}
-				processUsageList = append(processUsageList, processUsage)
 			} else {
 				if ioData != nil {
 					processUsage.DiskRead = ioData.ReadBytes
 					processUsage.DiskWrite = ioData.WriteBytes
 				}
 			}
+			processUsageList = append(processUsageList, processUsage)
 
 			if ioData != nil {
 				initProcessUsageTempMap[cmd] = ProcessUsage{
@@ -98,134 +103,6 @@ func GetProcessNum(probeUsage ProbeUsage) ProbeUsage {
 	probeUsage.Process.Num = infoStat.Procs
 
 	return probeUsage
-}
-
-func GetProcessesList() string {
-
-	defer func() {
-		err := recover()
-		if err != nil {
-			util.LogError("Get process list error : " + fmt.Sprintf("%s", err))
-		}
-	}()
-
-	resultStr := ""
-
-	var list []ProcessUsage
-
-	processes, _ := process.Processes()
-	for _, val := range processes {
-		name, _ := val.Name()
-		cmd, _ := val.Cmdline()
-		pid := val.Pid
-		cpuPercent, _ := val.CPUPercent()
-		memPercent, _ := val.MemoryPercent()
-
-		processUsage := ProcessUsage{}
-		processUsage.Name = name
-		processUsage.Cmd = cmd
-		if strings.Index(util.Float642string(cpuPercent), "0.0") == 0 {
-			processUsage.CpuPercent = float64(0)
-		} else {
-			processUsage.CpuPercent = cpuPercent
-		}
-		processUsage.MemPercent = memPercent
-		processUsage.Pid = pid
-
-		list = append(list, processUsage)
-	}
-	sort.Sort(ProcessUsageSlice(list))
-	if len(list) >= 30 {
-		list = list[0:30]
-	}
-	for _, val := range list {
-		resultStr += val.Name + ";" + util.Float642string(util.RoundFloat64(float64(val.CpuPercent), 1)) + ";" + util.Float642string(util.RoundFloat64(float64(val.MemPercent), 1)) + ";" + util.Int322string(val.Pid) + ";cmd:" + val.Cmd + "|"
-	}
-
-	return resultStr
-}
-
-func GetProcessCmdByPid(pid int32) string {
-
-	defer func() {
-		err := recover()
-		if err != nil {
-			util.LogError("Get process cmd by pid error : " + fmt.Sprintf("%s", err))
-		}
-	}()
-
-	process, _ := process.NewProcess(pid)
-	if process != nil {
-		cmdline, _ := process.Cmdline()
-		name, _ := process.Name()
-		return cmdline + "$" + name
-	}
-	return ""
-}
-
-func GetProcessInfo(pid int32) string {
-
-	defer func() {
-		err := recover()
-		if err != nil {
-			util.LogError("Get process info error : " + fmt.Sprintf("%s", err))
-		}
-	}()
-
-	process, _ := process.NewProcess(pid)
-	if process != nil {
-
-		processInfo := ProcessInfo{}
-		cmd, _ := process.Cmdline()
-		name, _ := process.Name()
-		cwd, _ := process.Cwd()
-		exe, _ := process.Exe()
-		createTime, _ := process.CreateTime()
-		foreground, _ := process.Foreground()
-		nice, _ := process.Nice()
-		numCtxSwitches, _ := process.NumCtxSwitches()
-		numThreads, _ := process.NumThreads()
-		openFiles, _ := process.OpenFiles()
-		status, _ := process.Status()
-		username, _ := process.Username()
-
-		processInfo.Cmd = cmd
-		processInfo.Name = name
-		processInfo.Cwd = cwd
-		processInfo.Exe = exe
-		processInfo.CreateTime = createTime
-		processInfo.Foreground = foreground
-		processInfo.Nice = nice
-		if numCtxSwitches != nil {
-			processInfo.NumCtxSwitchesVoluntary = numCtxSwitches.Voluntary
-			processInfo.NumCtxSwitchesInvoluntary = numCtxSwitches.Involuntary
-		}
-		processInfo.NumThreads = numThreads
-		processInfo.OpenFiles = len(openFiles)
-		processInfo.Status = status[0]
-		processInfo.Username = username
-
-		msg, _ := json.Marshal(processInfo)
-
-		return string(msg)
-	}
-	return ""
-}
-
-type ProcessInfo struct {
-	Name                      string `json:"name"`
-	Cmd                       string `json:"cmd"`
-	Cwd                       string `json:"cwd"`
-	Exe                       string `json:"exe"`
-	CreateTime                int64  `json:"createTime"`
-	Foreground                bool   `json:"foreground"`
-	Nice                      int32  `json:"nice"`
-	NumCtxSwitchesVoluntary   int64  `json:"voluntary"`
-	NumCtxSwitchesInvoluntary int64  `json:"involuntary"`
-	NumThreads                int32  `json:"numThreads"`
-	OpenFiles                 int    `json:"openFiles"`
-	Status                    string `json:"status"`
-	Username                  string `json:"username"`
 }
 
 type ProcessUsage struct {

@@ -1,15 +1,16 @@
 package config
 
-const Version = "v1.0.1"
+const Version = "v1.0.2"
 
-var WsUrl = "ws.nodepanels.com"
-var AgentUrl = "agent.nodepanels.com"
-var ApiUrl = "collect.nodepanels.com"
+var WsUrl = "wss://ws.nodepanels.com"
+var AgentUrl = "https://agent.nodepanels.com"
+var ApiUrl = "https://collect.nodepanels.com"
 
 type Config struct {
-	ServerId string  `json:"serverId"`
-	Warning  Warning `json:"warning"`
-	Monitor  Monitor `json:"monitor"`
+	ServerId string             `json:"serverId"`
+	Warning  Warning            `json:"warning"`
+	Monitor  Monitor            `json:"monitor"`
+	Command  map[string]Command `json:"command"`
 }
 
 type Warning struct {
@@ -42,4 +43,9 @@ type Monitor struct {
 
 type MonitorRule struct {
 	Process []string `json:"process"`
+}
+
+type Command struct {
+	Timeout int  `json:"timeout"`
+	Stop    bool `json:"stop"`
 }

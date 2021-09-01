@@ -2,15 +2,14 @@ package probe
 
 import (
 	"fmt"
-	"io"
-	"net/http"
 	"nodepanels/util"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 )
 
-func UpdateProbe(url string) {
+func Upgrade(url string) {
 
 	defer func() {
 		err := recover()
@@ -19,14 +18,9 @@ func UpdateProbe(url string) {
 		}
 	}()
 
-	res, _ := http.Get(url)
+	util.LogInfo("[COMMAND] Upgrade probe - back")
 
-	newFile, _ := os.Create(util.Exepath() + "/nodepanels-probe.temp")
-
-	io.Copy(newFile, res.Body)
-
-	defer res.Body.Close()
-	defer newFile.Close()
+	util.Download(url, filepath.Join(util.Exepath(), "nodepanels-probe.temp"))
 
 	if runtime.GOOS == "windows" {
 
@@ -42,28 +36,60 @@ func UpdateProbe(url string) {
 
 }
 
-func RebootProbe() {
+func ShutDown() {
 
 	defer func() {
 		err := recover()
 		if err != nil {
-			util.LogError("Reboot probe error : " + fmt.Sprintf("%s", err))
+			util.LogError("ShutDown probe error : " + fmt.Sprintf("%s", err))
 		}
 	}()
 
-	exec.Command("sh", "-c", "service nodepanels-probe restart").Output()
+	util.LogInfo("[COMMAND] Shutdown probe - back")
+
+	if runtime.GOOS == "windows" {
+
+		exec.Command("cmd", "/C", "net stop Nodepanels-probe").Output()
+	}
+	if runtime.GOOS == "linux" {
+
+		exec.Command("sh", "-c", "service nodepanels stop").Output()
+
+	}
 
 }
 
+func ExeCmd(cmd string) string {
+
+	defer func() {
+		err := recover()
+		if err != nil {
+			util.LogError("Execute command error : " + fmt.Sprintf("%s", err))
+		}
+	}()
+
+	if runtime.GOOS == "windows" {
+		output, _ := exec.Command("cmd", "/C", cmd).Output()
+		return string(output)
+	}
+	if runtime.GOOS == "linux" {
+		output, _ := exec.Command("sh", "-c", cmd).Output()
+		return string(output)
+	}
+
+	return ""
+}
+
 type ProbeUsage struct {
-	Cpu     Cpu     `json:"cpu"`
-	Mem     Mem     `json:"mem"`
-	Swap    Swap    `json:"swap"`
-	Disk    []Disk  `json:"disk"`
-	Net     Net     `json:"net"`
-	Process Process `json:"process"`
-	Load    Load    `json:"load"`
-	Unix    int64   `json:"unix"`
+	Cpu       Cpu         `json:"cpu"`
+	Mem       Mem         `json:"mem"`
+	Swap      Swap        `json:"swap"`
+	Disk      []Disk      `json:"disk"`
+	Partition []Partition `json:"partition"`
+	Net       Net         `json:"net"`
+	Process   Process     `json:"process"`
+	Load      Load        `json:"load"`
+	Unix      int64       `json:"unix"`
 }
 
 type Cpu struct {
@@ -83,6 +109,11 @@ type Disk struct {
 	Name  string `json:name`
 	Read  uint64 `json:read`
 	Write uint64 `json:"write"`
+}
+
+type Partition struct {
+	Device string `json:"device""`
+	Used   uint64 `json:"used"`
 }
 
 type Net struct {
@@ -139,13 +170,11 @@ type DiskInfo struct {
 	Mountpoint string `json:"mountpoint"`
 	Fstype     string `json:"fstype"`
 	Total      uint64 `json:"total"`
-	Used       uint64 `json:"used"`
 }
 
 type NetInfo struct {
 	PublicIp   string `json:"publicIp"`
 	PrivateIp  string `json:"privateIp"`
-	Dns        string `json:"dns"`
 	WsIp       string `json:"wsIp"`
 	AgentIp    string `json:"agentIp"`
 	ApiIp      string `json:"apiIp"`

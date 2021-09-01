@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/kardianos/service"
+	"io/ioutil"
 	"nodepanels/config"
 	"nodepanels/probe"
 	"nodepanels/util"
-	"nodepanels/websocket"
+	"nodepanels/ws"
 	"os"
+	"os/exec"
 	"runtime"
 	"time"
 )
@@ -17,8 +19,16 @@ import (
 
 func main() {
 
+	serviceName := ""
+	if runtime.GOOS == "windows" {
+		serviceName = "Nodepanels-probe"
+	}
+	if runtime.GOOS == "linux" {
+		serviceName = "nodepanels"
+	}
+
 	serConfig := &service.Config{
-		Name:        "Nodepanels-probe",
+		Name:        serviceName,
 		DisplayName: "Nodepanels-probe",
 		Description: "Nodepanels探针进程",
 	}
@@ -30,7 +40,8 @@ func main() {
 	}
 
 	if len(os.Args) > 1 {
-		if os.Args[1] == "install" {
+
+		if os.Args[1] == "-install" {
 			err = s.Install()
 			if err != nil {
 				fmt.Println("Install failed", err)
@@ -40,13 +51,33 @@ func main() {
 			return
 		}
 
-		if os.Args[1] == "uninstall" {
+		if os.Args[1] == "-uninstall" {
 			err = s.Uninstall()
 			if err != nil {
-				fmt.Println("Uninstall err", err)
+				fmt.Println("Uninstall failed", err)
 			} else {
 				fmt.Println("Uninstall success")
 			}
+			return
+		}
+
+		if os.Args[1] == "-version" {
+			fmt.Println(util.Logo())
+			fmt.Println("====================================")
+			fmt.Println("App name    : nodepanels-probe")
+			fmt.Println("Version     : v1.0.2")
+			fmt.Println("Update Time : 20210819")
+			fmt.Println("\nMade by     : https://nodepanels.com")
+			fmt.Println("====================================")
+			return
+		}
+
+		if os.Args[1] == "-help" {
+			fmt.Println("Available option is :")
+			fmt.Println("1) -install    :  Install nodepanels-probe as a service to system.")
+			fmt.Println("2) -uninstall  :  Remove nodepanels-probe service from system.")
+			fmt.Println("3) -version    :  Check nodepanels-probe version info.")
+			fmt.Println("4) -help       :  How to use nodepanels-probe.")
 			return
 		}
 	}
@@ -77,34 +108,30 @@ func (p *Program) Stop(s service.Service) error {
 
 func StartProbe() {
 	util.LogFile, _ = os.OpenFile(util.Exepath()+"/log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	util.LogDebug("\n  _   _           _                             _     " +
-		"\n | \\ | |         | |                           | |    " +
-		"\n |  \\| | ___   __| | ___ _ __   __ _ _ __   ___| |___ " +
-		"\n | . ` |/ _ \\ / _` |/ _ \\ '_ \\ / _` | '_ \\ / _ \\ / __|" +
-		"\n | |\\  | (_) | (_| |  __/ |_) | (_| | | | |  __/ \\__ \\" +
-		"\n |_| \\_|\\___/ \\__,_|\\___| .__/ \\__,_|_| |_|\\___|_|___/" +
-		"\n                        | |                           " +
-		"\n                        |_|                           " +
-		"\n")
+	util.LogDebug(util.Logo())
 
 	runtime.GOMAXPROCS(1)
 
-	//验证探针是否安装成功
 	if ProbeCheck() {
 
-		//发送服务器信息
 		sendServerInfo()
 
-		//与代理服务器建立websocket连接
-		go websocket.CreateAgentConn()
+		go ws.CreateAgentConn()
 
-		//循环发送服务器监控数据
 		for {
 			go sendUsageInfo()
 			time.Sleep(60000 * time.Millisecond)
 		}
 
 	}
+
+	if runtime.GOOS == "windows" {
+		exec.Command("cmd", "/C", "net stop Nodepanels-probe").Output()
+	}
+	if runtime.GOOS == "linux" {
+		exec.Command("sh", "-c", "service nodepanels stop").Output()
+	}
+
 }
 
 func ProbeCheck() bool {
@@ -116,12 +143,16 @@ func ProbeCheck() bool {
 		}
 	}()
 
-	probe.InitConfigIp()
 	if util.GetHostId() == "" {
 		util.LogError("The program is not completely installed, please reinstall")
 		return false
 	}
-	exist := util.Get("https://" + config.AgentUrl + "/server/exist/" + util.GetHostId())
+	exist := util.Get(config.AgentUrl + "/server/exist/" + util.GetHostId())
+
+	c := util.GetConfig()
+	data, _ := json.MarshalIndent(c, "", "\t")
+	ioutil.WriteFile(util.Exepath()+"/config", data, 0666)
+
 	if exist == "1" {
 		util.LogDebug("Program started successfully")
 		return true
@@ -145,6 +176,7 @@ func sendUsageInfo() {
 	probeUsage = probe.GetMemUsage(probeUsage)
 	probeUsage = probe.GetSwapUsage(probeUsage)
 	probeUsage = probe.GetDiskUsage(probeUsage)
+	probeUsage = probe.GetPartitionUsage(probeUsage)
 	probeUsage = probe.GetNetUsage(probeUsage)
 	probeUsage = probe.GetProcessNum(probeUsage)
 	probeUsage = probe.GetProcessUsage(probeUsage)
@@ -157,7 +189,7 @@ func sendUsageInfo() {
 	resultMap["serverId"] = util.GetHostId()
 	resultMap["msg"] = string(msg)
 	result, _ := json.Marshal(resultMap)
-	util.PostJson("https://"+config.ApiUrl+"/api/v1", result)
+	util.PostJson(config.ApiUrl+"/api/v1", result)
 }
 
 func sendServerInfo() {
@@ -184,5 +216,5 @@ func sendServerInfo() {
 	resultMap["msg"] = string(msg)
 	result, _ := json.Marshal(resultMap)
 
-	go util.PostJson("https://"+config.AgentUrl+"/server/info", result)
+	go util.PostJson(config.AgentUrl+"/server/info", result)
 }
