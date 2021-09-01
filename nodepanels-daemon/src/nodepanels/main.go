@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/kardianos/service"
+	"nodepanels/util"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -15,8 +16,16 @@ import (
 
 func main() {
 
+	serviceName := ""
+	if runtime.GOOS == "windows" {
+		serviceName = "Nodepanels-daemon"
+	}
+	if runtime.GOOS == "linux" {
+		serviceName = "nodepanels-daemon"
+	}
+
 	serConfig := &service.Config{
-		Name:        "Nodepanels-daemon",
+		Name:        serviceName,
 		DisplayName: "Nodepanels-daemon",
 		Description: "Nodepanels探针守护进程",
 	}
@@ -28,7 +37,8 @@ func main() {
 	}
 
 	if len(os.Args) > 1 {
-		if os.Args[1] == "install" {
+
+		if os.Args[1] == "-install" {
 			err = s.Install()
 			if err != nil {
 				fmt.Println("Install failed", err)
@@ -38,7 +48,7 @@ func main() {
 			return
 		}
 
-		if os.Args[1] == "uninstall" {
+		if os.Args[1] == "-uninstall" {
 			err = s.Uninstall()
 			if err != nil {
 				fmt.Println("Uninstall err", err)
@@ -47,6 +57,27 @@ func main() {
 			}
 			return
 		}
+
+		if os.Args[1] == "-version" {
+			fmt.Println(util.Logo())
+			fmt.Println("====================================")
+			fmt.Println("App name    : nodepanels-daemon")
+			fmt.Println("Version     : v1.0.2")
+			fmt.Println("Update Time : 20210819")
+			fmt.Println("\nMade by     : https://nodepanels.com")
+			fmt.Println("====================================")
+			return
+		}
+
+		if os.Args[1] == "-help" {
+			fmt.Println("Available option is :")
+			fmt.Println("1) -install    :  Install nodepanels-daemon as a service to system.")
+			fmt.Println("2) -uninstall  :  Remove nodepanels-daemon service from system.")
+			fmt.Println("3) -version    :  Check nodepanels-daemon version info.")
+			fmt.Println("4) -help       :  How to use nodepanels-daemon.")
+			return
+		}
+
 	}
 
 	err = s.Run()
