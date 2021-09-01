@@ -1,0 +1,13 @@
+before:
+  hooks:
+builds:
+  - env:
+      - CGO_ENABLED=0
+    id: "nodepanels-tool"
+    binary: "nodepanels-tool-{{ .Os }}-{{ .Arch }}"
+    goos:
+      - linux
+      - windows
+    goarch:
+      - 386
+      - amd64
