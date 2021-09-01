@@ -2,11 +2,16 @@
 
 #Set variable
 PROBE_PATH=/usr/local/nodepanels
+
 PROBE_NAME=nodepanels-probe
 DAEMON_NAME=nodepanels-daemon
-SH_VERSION=v1.0.2
-PROBE_VERSION=v1.0.1
-UPDATE_TIME=2021.06.20
+
+PROBE_SERVICE_NAME=nodepanels
+DAEMON_SERVICE_NAME=nodepanels-daemon
+
+SH_VERSION=v1.0.3
+PROBE_VERSION=v1.0.2
+UPDATE_TIME=2021.08.29
 
 echo "*******************************************************************"
 echo "|                        __                            __         |"
@@ -29,65 +34,100 @@ then
 	exit 1
 fi
 
-#Delete previous probe
-if [ -d ${PROBE_PATH} ]
-then
-	echo "$(date +"%Y-%m-%d %T") Delete historical version"
-	rm -Rf ${PROBE_PATH}
-	
-	#Stop service
-	echo "$(date +"%Y-%m-%d %T") Stopping probe ......"
-	service nodepanels-daemon stop
-	service nodepanels stop
-	systemctl disable nodepanels-daemon
-	systemctl disable nodepanels
-	
-	PROCESS=`ps -ef|grep nodepanels-probe|grep -v grep|grep -v PPID|awk '{ print $2}'`
-	for i in $PROCESS
-	do
-	  kill -9 $i
-	done
-	
-	PROCESS=`ps -ef|grep nodepanels-daemon|grep -v grep|grep -v PPID|awk '{ print $2}'`
-	for i in $PROCESS
-	do
-	  kill -9 $i
-	done
-	
-	#Delete service
-	if [ -f "/etc/systemd/system/nodepanels.service" ]
-	then
-		echo "$(date +"%Y-%m-%d %T") Removing probe service ......"
-		rm -Rf /etc/systemd/system/nodepanels.service
-		rm -Rf /etc/systemd/system/nodepanels-daemon.service
-		systemctl daemon-reload
-	fi
+########################################################################################################
 
+#Stop service step 1
+HASSERVICE=0
+service nodepanels status > /dev/null 2>&1
+if [ $? != 4 ]
+then
+	echo "$(date +"%Y-%m-%d %T") Stopping probe ......"
+	service ${DAEMON_SERVICE_NAME} stop
+	service ${PROBE_SERVICE_NAME} stop
+	HASSERVICE=1
 fi
 
+#Stop service step 2
+PROCESS=`ps -ef|grep nodepanels-daemon|grep -v grep|grep -v PPID|awk '{ print $2}'`
+for i in $PROCESS
+do
+  kill -9 $i
+done
+
+PROCESS=`ps -ef|grep nodepanels-probe|grep -v grep|grep -v PPID|awk '{ print $2}'`
+for i in $PROCESS
+do
+  kill -9 $i
+done
+	
+#Delete service
+if [ ${HASSERVICE} = 1 ]
+then
+
+	echo "$(date +"%Y-%m-%d %T") Removing probe service ......"
+	
+	if [ -d ${PROBE_PATH} ]
+	then
+		${PROBE_PATH}/${DAEMON_NAME} -uninstall
+		${PROBE_PATH}/${PROBE_NAME} -uninstall
+	fi
+	
+	systemctl disable ${DAEMON_SERVICE_NAME}
+	systemctl disable ${PROBE_SERVICE_NAME}
+	systemctl daemon-reload	
+	
+fi
+
+if [ -f "/etc/systemd/system/nodepanels.service" ]
+then
+	echo "$(date +"%Y-%m-%d %T") Removing probe service ......"
+	rm -Rf /etc/systemd/system/nodepanels.service
+	rm -Rf /etc/systemd/system/nodepanels-daemon.service
+	systemctl daemon-reload
+fi
+	
+#Delete previous probe path
+if [ -d ${PROBE_PATH} ]
+then
+	echo "$(date +"%Y-%m-%d %T") Deleting nodepanels path ......"
+	rm -Rf ${PROBE_PATH}
+fi
+
+########################################################################################################
+
 #Create probe dir
+echo "$(date +"%Y-%m-%d %T") ========== Start to install nodepanels-probe =========="
+echo "$(date +"%Y-%m-%d %T") Creating nodepanels path ......"
 mkdir -p ${PROBE_PATH}
+
+#Judge arch set download url
+PROBE_DOWNLOAD_URL=""
+DAEMON_DOWNLOAD_URL=""
+if [ `uname -m` = "i686" ] ; then
+	PROBE_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/prod/nodepanels-probe-linux-386"
+	DAEMON_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/daemon/prod/nodepanels-daemon-linux-386"
+elif [ `uname -m` = "x86_64" ] ; then
+	PROBE_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/prod/nodepanels-probe-linux-amd64"
+	DAEMON_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/daemon/prod/nodepanels-daemon-linux-amd64"
+elif [ `uname -m` = "aarch32" ] ; then
+	PROBE_DOWNLOAD_URL = "https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/prod/nodepanels-probe-linux-arm32"
+	DAEMON_DOWNLOAD_URL = "https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/daemon/prod/nodepanels-daemon-linux-arm32"
+elif [ `uname -m` = "aarch64" ] ; then
+	PROBE_DOWNLOAD_URL = "https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/prod/nodepanels-probe-linux-arm64"
+	DAEMON_DOWNLOAD_URL = "https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/daemon/prod/nodepanels-daemon-linux-arm64"
+else
+	echo "$(date +"%Y-%m-%d %T") The system is not supported for the time being"
+	exit
+fi
 
 #Download probe
 echo "$(date +"%Y-%m-%d %T") Downloading probe ......"
-
-if [ `arch` = "aarch64" ] ; then
-   wget -nv -o /dev/stdout -O ${PROBE_PATH}/${PROBE_NAME} --no-check-certificate https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/arm/nodepanels-probe
-else
-   wget -nv -o /dev/stdout -O ${PROBE_PATH}/${PROBE_NAME} --no-check-certificate https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/x86/nodepanels-probe
-fi
-
+wget -nv -o /dev/stdout -O ${PROBE_PATH}/${PROBE_NAME} --no-check-certificate ${PROBE_DOWNLOAD_URL}
 echo "$(date +"%Y-%m-%d %T") Download probe success"
 
 #Download daemon
 echo "$(date +"%Y-%m-%d %T") Downloading daemon ......"
-
-if [ `arch` = "aarch64" ] ; then
-   wget -nv -o /dev/stdout -O ${PROBE_PATH}/${DAEMON_NAME} --no-check-certificate https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/arm/nodepanels-daemon
-else
-   wget -nv -o /dev/stdout -O ${PROBE_PATH}/${DAEMON_NAME} --no-check-certificate https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/x86/nodepanels-daemon
-fi
-
+wget -nv -o /dev/stdout -O ${PROBE_PATH}/${DAEMON_NAME} --no-check-certificate ${DAEMON_DOWNLOAD_URL}
 echo "$(date +"%Y-%m-%d %T") Download daemon success"
 
 #Grant authority
@@ -101,36 +141,12 @@ echo "{\"serverId\":\""$1"\"}" >> ${PROBE_PATH}/config
 echo "$(date +"%Y-%m-%d %T") Create config file success"
 
 #Register as a service
-cat > /etc/systemd/system/nodepanels.service <<EOF
-[Unit]
-Description=nodepanels
+${PROBE_PATH}/${PROBE_NAME} -install
+${PROBE_PATH}/${DAEMON_NAME} -install
 
-[Service]
-ExecStart=/usr/local/nodepanels/nodepanels-probe
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-echo "$(date +"%Y-%m-%d %T") Register probe service success"
-
-cat > /etc/systemd/system/nodepanels-daemon.service <<EOF
-[Unit]
-Description=nodepanels-daemon
-
-[Service]
-ExecStart=/usr/local/nodepanels/nodepanels-daemon
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-echo "$(date +"%Y-%m-%d %T") Register daemon service success"
-
-echo "$(date +"%Y-%m-%d %T") Starting probe ......"
-systemctl enable nodepanels
-systemctl enable nodepanels-daemon
 service nodepanels-daemon restart
+
+echo "$(date +"%Y-%m-%d %T") Install success"
 
 #Delete script
 rm -rf $0
