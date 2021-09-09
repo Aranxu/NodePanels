@@ -9,7 +9,7 @@ import (
 
 func main() {
 
-	version := "v1.0.2"
+	version := "v1.0.3"
 
 	if len(os.Args) > 1 {
 		switch os.Args[1] {

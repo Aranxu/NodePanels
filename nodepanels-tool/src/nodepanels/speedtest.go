@@ -25,21 +25,22 @@ func SpeedTest(toolType string, tempNo string) {
 
 	speedtestFileName := ""
 	speedtestDownloadUrl := ""
-	if runtime.GOOS == "linux" {
-		speedtestFileName = "speedtest"
-		speedtestDownloadUrl = "https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/speedtest/speedtest-linux"
+	if runtime.GOOS == "linux" && runtime.GOARCH == "amd64" {
+		speedtestFileName = "np-speedtest-cli"
+		speedtestDownloadUrl = "https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/speedtest/speedtest-linux-amd64"
+	} else if runtime.GOOS == "linux" && runtime.GOARCH == "arm64" {
+		speedtestFileName = "np-speedtest-cli"
+		speedtestDownloadUrl = "https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/speedtest/speedtest-linux-arm64"
 	} else if runtime.GOOS == "windows" {
-		speedtestFileName = "speedtest.exe"
+		speedtestFileName = "np-speedtest-cli.exe"
 		speedtestDownloadUrl = "https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/speedtest/speedtest-windows-64.exe"
 	}
 
 	if !util.PathExists(filepath.Join(util.Exepath(), speedtestFileName)) {
 		util.Download(speedtestDownloadUrl, filepath.Join(util.Exepath(), speedtestFileName))
 		if runtime.GOOS == "linux" {
-			//下载speedtest.py
-			util.Download("https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/speedtest/speedtest.py", filepath.Join(util.Exepath(), "speedtest.py"))
 			//linux系统赋予执行权限
-			os.Chmod(util.Exepath()+"/speedtest", 0777)
+			os.Chmod(filepath.Join(util.Exepath(), speedtestFileName), 0777)
 		}
 	}
 
@@ -56,11 +57,7 @@ func SpeedTest(toolType string, tempNo string) {
 			cmd = exec.Command("cmd", "/C", filepath.Join(util.Exepath(), speedtestFileName+" --accept-license -s "+value))
 		}
 		if runtime.GOOS == "linux" {
-			if "performance-net-speedtest-ping" == toolType {
-				cmd = exec.Command("sh", "-c", filepath.Join(util.Exepath(), speedtestFileName+" ping "+value))
-			} else {
-				cmd = exec.Command("sh", "-c", filepath.Join(util.Exepath(), speedtestFileName+" all "+value))
-			}
+			cmd = exec.Command("sh", "-c", filepath.Join("sudo "+util.Exepath(), speedtestFileName+" --accept-license -s "+value))
 		}
 
 		stdout, _ := cmd.StdoutPipe()
@@ -78,13 +75,7 @@ func SpeedTest(toolType string, tempNo string) {
 	fmt.Println("{\"toolType\":\"" + toolType + "\",\"serverId\":\"" + util.GetHostId() + "\",\"msg\":\"END\"}")
 
 	os.Remove(filepath.Join(util.Exepath(), toolType+"-"+tempNo+".temp"))
-	if runtime.GOOS == "linux" {
-		os.Remove(filepath.Join(util.Exepath(), "speedtest"))
-		os.Remove(filepath.Join(util.Exepath(), "speedtest.py"))
-	}
-	if runtime.GOOS == "windows" {
-		os.Remove(filepath.Join(util.Exepath(), "speedtest.exe"))
-	}
+	os.Remove(filepath.Join(util.Exepath(), speedtestFileName))
 }
 
 func asyncLog(toolType string, nodeId string, std io.ReadCloser) error {
@@ -103,13 +94,16 @@ func asyncLog(toolType string, nodeId string, std io.ReadCloser) error {
 		if strings.Contains(string(readString), "error") {
 			resultMap.Latency = "-1"
 			SpeedtestSendBack(toolType, resultMap)
-		} else if strings.Contains(string(readString), "Latency") {
-			latency := strings.Split(strings.Split(strings.ReplaceAll(strings.TrimSpace(string(readString)), " ", ""), "Latency:")[1], "ms")[0]
+		} else if strings.Contains(string(readString), "ms") {
+			latency := strings.Split(strings.Split(strings.ReplaceAll(strings.TrimSpace(string(readString)), " ", ""), ":")[1], "ms")[0]
 			resultMap.Latency = latency
 			SpeedtestSendBack(toolType, resultMap)
-			if runtime.GOOS == "windows" {
-				if "performance-net-speedtest-ping" == toolType {
-					exec.Command("cmd", "/C", "taskkill /f /im speedtest.exe").Output()
+			if "performance-net-speedtest-ping" == toolType {
+				if runtime.GOOS == "windows" {
+					exec.Command("cmd", "/C", "taskkill /f /im np-speedtest-cli.exe").Output()
+				}
+				if runtime.GOOS == "linux" {
+					exec.Command("sh", "-c", "ps aux | grep \"np-speedtest-cli\" |grep -v grep| cut -c 9-15 | xargs kill -9").Output()
 				}
 			}
 		} else if strings.Contains(string(readString), "Download") {
