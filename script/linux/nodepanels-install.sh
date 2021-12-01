@@ -9,9 +9,9 @@ DAEMON_NAME=nodepanels-daemon
 PROBE_SERVICE_NAME=nodepanels
 DAEMON_SERVICE_NAME=nodepanels-daemon
 
-SH_VERSION=v1.0.3
+SH_VERSION=v1.0.4
 PROBE_VERSION=v1.0.2
-UPDATE_TIME=2021.08.29
+UPDATE_TIME=2021.12.01
 
 echo "*******************************************************************"
 echo "|                        __                            __         |"
@@ -110,11 +110,11 @@ elif [ `uname -m` = "x86_64" ] ; then
 	PROBE_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/prod/nodepanels-probe-linux-amd64"
 	DAEMON_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/daemon/prod/nodepanels-daemon-linux-amd64"
 elif [ `uname -m` = "aarch32" ] ; then
-	PROBE_DOWNLOAD_URL = "https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/prod/nodepanels-probe-linux-arm32"
-	DAEMON_DOWNLOAD_URL = "https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/daemon/prod/nodepanels-daemon-linux-arm32"
+	PROBE_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/prod/nodepanels-probe-linux-arm32"
+	DAEMON_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/daemon/prod/nodepanels-daemon-linux-arm32"
 elif [ `uname -m` = "aarch64" ] ; then
-	PROBE_DOWNLOAD_URL = "https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/prod/nodepanels-probe-linux-arm64"
-	DAEMON_DOWNLOAD_URL = "https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/daemon/prod/nodepanels-daemon-linux-arm64"
+	PROBE_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/prod/nodepanels-probe-linux-arm64"
+	DAEMON_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/daemon/prod/nodepanels-daemon-linux-arm64"
 else
 	echo "$(date +"%Y-%m-%d %T") The system is not supported for the time being"
 	exit
