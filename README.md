@@ -1,7 +1,18 @@
 # NodePanels
-https://nodepanels.com
 
 >一款使用简单功能全面的多服务器监控面板，一条指令即可对你的服务器了如指掌
+
+## 网站： https://nodepanels.com
+
+```
+代码已迁移至：
+
+探针包：https://github.com/Aranxu/Nodepanels-probe
+
+工具包：https://github.com/Aranxu/Nodepanels-tool
+
+守护进程：https://github.com/Aranxu/Nodepanels-daemon
+```
 
 ## 起因
 因为手上的服务器挺多的，想要统一进行管理监控，尝试了一些已有的产品，最终使用了nodequery，简单明了。但是2020年9月开始发现网站经常无法打开、打开缓慢、签名过期等问题，而且一个号只能添加10台服务器，不支持windows。宝塔面板在2020年10月开始需要验证手机号，原因不深究。感觉市面上好像挺缺这种产品的，本人所在公司正好完成了一个云服务器监控系统，监控的是某机构某地市所有机房中的服务器，目前有几万台，主打安全。这不刚好对口了吗，于是此项目开起来了。
