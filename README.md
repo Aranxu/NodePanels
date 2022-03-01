@@ -4,7 +4,7 @@
 
 <a href="https://t.me/nodepanels_group" target="_blank"><img src="https://s4.ax1x.com/2022/03/01/bQQs2t.png" alt="bQQs2t.png" border="0" /></a>
 <a href="https://qm.qq.com/cgi-bin/qm/qr?k=rD7CokCfFoJ1OdHCr6CwaQGftWpCygFr&jump_from=webapi" target="_blank"><img src="https://s4.ax1x.com/2022/03/01/bQlaQ0.png" alt="bQlaQ0.png" border="0" /></a>
-<a href="https://imgtu.com/i/bQ1Bct" target="_blank"><img src="https://s4.ax1x.com/2022/03/01/bQlWy6.png" alt="bQlWy6.png" border="0" /></a>
+<a href="https://nodepanels-1256221051.file.myqcloud.com/web/static/pic/wechat_qrcode.jpg" target="_blank"><img src="https://s4.ax1x.com/2022/03/01/bQlWy6.png" alt="bQlWy6.png" border="0" /></a>
 <a href="mailto:support@nodepanels.com"><img src="https://s4.ax1x.com/2022/03/01/bQ1AXV.png" alt="bQ1AXV.png" border="0" /></a>
 
 ## 网站： https://nodepanels.com
