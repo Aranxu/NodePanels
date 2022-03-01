@@ -2,6 +2,11 @@
 
 >一款使用简单功能全面的多服务器监控面板，一条指令即可对你的服务器了如指掌
 
+<a href="https://t.me/nodepanels_group" target="_blank"><img src="https://s4.ax1x.com/2022/03/01/bQQs2t.png" alt="bQQs2t.png" border="0" /></a>
+<a href="https://qm.qq.com/cgi-bin/qm/qr?k=rD7CokCfFoJ1OdHCr6CwaQGftWpCygFr&jump_from=webapi" target="_blank"><img src="https://s4.ax1x.com/2022/03/01/bQlaQ0.png" alt="bQlaQ0.png" border="0" /></a>
+<a href="https://imgtu.com/i/bQ1Bct" target="_blank"><img src="https://s4.ax1x.com/2022/03/01/bQlWy6.png" alt="bQlWy6.png" border="0" /></a>
+<a href="mailto:support@nodepanels.com"><img src="https://s4.ax1x.com/2022/03/01/bQ1AXV.png" alt="bQ1AXV.png" border="0" /></a>
+
 ## 网站： https://nodepanels.com
 
 探针包：https://github.com/Aranxu/Nodepanels-probe
@@ -21,6 +26,35 @@
 **关于隐私：** 本项目一个最重要的点就是用户隐私为第一位，绝不强制用户提供任何个人信息，账号在本系统产生的所有数据均可删除。（真的被某些产品恶心到了）
 
 ## 进展（每月更新）
+
+详细更新记录：<a href="https://nodepanels.com/info/change" target="_blank">https://nodepanels.com/info/change</a>
+
+<details>
+  <summary>2022-02</summary>
+  <br>
+  <ul>
+    <li>增加网络实时速率</li>
+    <li>页面重构（耗时长）</li>
+  </ul>
+</details>
+
+<details>
+  <summary>2022-01</summary>
+  <br>
+  <ul>
+    <li>网络测速增加数据分析，显示各地区最大最小平均值。</li>
+    <li>文件管理器根据文件后缀展示对应icon。</li>
+    <li>增加用户中心。</li>
+    <li>增加费用中心，提供配额套餐。</li>
+    <li>支持密码修改（电脑端）。</li>
+    <li>支持密码修改。</li>
+    <li>支持邮箱设置。</li>
+    <li>创建QQ交流群，微信交流群，TG交流群、TG公告群。</li>
+    <li>修复文件管理器无法预览文件。</li>
+    <li>修复微信、QQ告警机器人</li>
+    <li>支持cpu、内存、离线告警恢复通知。</li>
+  </ul>
+</details>
 
 <details>
   <summary>2021-12</summary>
@@ -181,11 +215,11 @@
 </details>
 
 ## 总进度
-### 一阶段（2022-01-01更新）
+### 一阶段（2022-03-01更新）
 类目|状态|进度
 --|:--:|--:
 首页|已完成|===================================100%
-用户模块|进行中|===========　　　　　　　　　　　　　　　　40%
+用户模块|进行中|==============================　　　　80%
 探针开发|已完成|===================================100%
 服务器总览页|已完成|===================================100%
 服务器信息页|已完成|===================================100%
