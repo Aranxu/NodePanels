@@ -9,9 +9,9 @@ DAEMON_NAME=nodepanels-daemon
 PROBE_SERVICE_NAME=nodepanels
 DAEMON_SERVICE_NAME=nodepanels-daemon
 
-SH_VERSION=v1.0.4
-PROBE_VERSION=v1.0.2
-UPDATE_TIME=2021.12.01
+SH_VERSION=v1.0.5
+PROBE_VERSION=v1.0.3
+UPDATE_TIME=2022.03.16
 
 echo "*******************************************************************"
 echo "|                        __                            __         |"
@@ -38,12 +38,12 @@ fi
 
 #Stop service step 1
 HASSERVICE=0
-service nodepanels status > /dev/null 2>&1
+systemctl status nodepanels > /dev/null 2>&1
 if [ $? != 4 ]
 then
 	echo "$(date +"%Y-%m-%d %T") Stopping probe ......"
-	service ${DAEMON_SERVICE_NAME} stop
-	service ${PROBE_SERVICE_NAME} stop
+	systemctl stop ${DAEMON_SERVICE_NAME}
+	systemctl stop ${PROBE_SERVICE_NAME}
 	HASSERVICE=1
 fi
 
@@ -144,7 +144,7 @@ echo "$(date +"%Y-%m-%d %T") Create config file success"
 ${PROBE_PATH}/${PROBE_NAME} -install
 ${PROBE_PATH}/${DAEMON_NAME} -install
 
-service nodepanels-daemon restart
+systemctl restart nodepanels-daemon
 
 echo "$(date +"%Y-%m-%d %T") Install success"
 
