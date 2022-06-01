@@ -30,6 +30,18 @@
 详细更新记录：<a href="https://nodepanels.com/info/change" target="_blank">https://nodepanels.com/info/change</a>
 
 <details>
+  <summary>2022-05</summary>
+  <br>
+  <ul>
+    <li>支持获取实时数据，粒度为2秒</li>
+    <li>探针每10分钟更新一次系统软硬件信息</li>
+    <li>CPU、内存告警逻辑转为服务端实现</li>
+    <li>探针数据上报增加备用域名，提高上报成功率</li>
+    <li>探针升级至Go1.18，支持更多系统架构。更新windows端应用图标，优化程序逻辑，业务分离</li>
+  </ul>
+</details>
+
+<details>
   <summary>2022-04</summary>
   <br>
   <ul>
@@ -241,7 +253,7 @@
 </details>
 
 ## 总进度
-### 一阶段（2022-05-01更新）
+### 一阶段（2022-06-01更新）
 类目|状态|进度
 --|:--:|--:
 首页|已完成|===================================100%
