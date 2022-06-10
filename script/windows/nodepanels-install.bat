@@ -1,8 +1,9 @@
 @echo off
 
-set SH_VERSION=v1.0.2
-set PROBE_VERSION=v1.0.2
-set UPDATE_TIME=2021.08.31
+set SH_VERSION=v1.0.4
+set PROBE_VERSION=v1.1.0
+set DAEMON_VERSION=v1.1.0
+set UPDATE_TIME=2022.06.10
 
 echo *******************************************************************
 echo ^|                        __                            __         ^|
@@ -53,7 +54,23 @@ md %USERPROFILE%\nodepanels
 ::Download probe
 echo %date% %time% Downloading probe ......
 
-powershell -Command "$wc = New-Object System.Net.WebClient; $wc.DownloadFile('https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/prod/nodepanels-probe-windows-amd64.exe', '%USERPROFILE%\nodepanels\nodepanels-probe.exe')"
+echo %PROCESSOR_ARCHITECTURE% | find /i "x86" > nul
+if %errorlevel%==0 (
+	set PROBE_DOWNLOAD_URL='https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/prod/%PROBE_VERSION%/nodepanels-probe-windows-386.exe'
+	set DAEMON_DOWNLOAD_URL='https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/daemon/prod/%DAEMON_VERSION%/nodepanels-daemon-windows-386.exe'
+)
+echo %PROCESSOR_ARCHITECTURE% | find /i "AMD64" > nul
+if %errorlevel%==0 (
+	set PROBE_DOWNLOAD_URL='https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/prod/%PROBE_VERSION%/nodepanels-probe-windows-amd64.exe'
+	set DAEMON_DOWNLOAD_URL='https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/daemon/prod/%DAEMON_VERSION%/nodepanels-daemon-windows-amd64.exe'
+)
+echo %PROCESSOR_ARCHITECTURE% | find /i "ARM64" > nul
+if %errorlevel%==0 (
+	set PROBE_DOWNLOAD_URL='https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/prod/%PROBE_VERSION%/nodepanels-probe-windows-arm64.exe'
+	set DAEMON_DOWNLOAD_URL='https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/daemon/prod/%DAEMON_VERSION%/nodepanels-daemon-windows-arm64.exe'
+)
+
+powershell -Command "$wc = New-Object System.Net.WebClient; $wc.DownloadFile(%PROBE_DOWNLOAD_URL%, '%USERPROFILE%\nodepanels\nodepanels-probe.exe')"
 if errorlevel 1 (
   echo %date% %time% Download Probe Failed
   exit /b 1
@@ -63,7 +80,7 @@ echo %date% %time% Download probe success
 ::Download daemon
 echo %date% %time% Downloading daemon ......
 
-powershell -Command "$wc = New-Object System.Net.WebClient; $wc.DownloadFile('https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/daemon/prod/nodepanels-daemon-windows-amd64.exe', '%USERPROFILE%\nodepanels\nodepanels-daemon.exe')"
+powershell -Command "$wc = New-Object System.Net.WebClient; $wc.DownloadFile(%DAEMON_DOWNLOAD_URL%, '%USERPROFILE%\nodepanels\nodepanels-daemon.exe')"
 if errorlevel 1 (
   echo %date% %time% Download Daemon Failed
   exit /b 1
@@ -71,7 +88,7 @@ if errorlevel 1 (
 echo %date% %time% Download daemon success
 
 ::Create config file
-echo {"serverId":"%1"} >> %USERPROFILE%\nodepanels\config
+echo {"serverId":"%1"} >> %USERPROFILE%\nodepanels\config.json
 echo %date% %time% Create config file success
 
 ::Register as a service
