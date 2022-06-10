@@ -9,9 +9,10 @@ DAEMON_NAME=nodepanels-daemon
 PROBE_SERVICE_NAME=nodepanels
 DAEMON_SERVICE_NAME=nodepanels-daemon
 
-SH_VERSION=v1.0.5
-PROBE_VERSION=v1.0.3
-UPDATE_TIME=2022.03.16
+SH_VERSION=v1.0.6
+PROBE_VERSION=v1.1.0
+DAEMON_VERSION=v1.1.0
+UPDATE_TIME=2022.06.10
 
 echo "*******************************************************************"
 echo "|                        __                            __         |"
@@ -104,17 +105,32 @@ mkdir -p ${PROBE_PATH}
 PROBE_DOWNLOAD_URL=""
 DAEMON_DOWNLOAD_URL=""
 if [ `uname -m` = "i686" ] ; then
-	PROBE_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/prod/nodepanels-probe-linux-386"
-	DAEMON_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/daemon/prod/nodepanels-daemon-linux-386"
+	PROBE_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/prod/${PROBE_VERSION}/nodepanels-probe-linux-386"
+	DAEMON_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/daemon/prod/${DAEMON_VERSION}/nodepanels-daemon-linux-386"
 elif [ `uname -m` = "x86_64" ] ; then
-	PROBE_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/prod/nodepanels-probe-linux-amd64"
-	DAEMON_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/daemon/prod/nodepanels-daemon-linux-amd64"
+	PROBE_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/prod/${PROBE_VERSION}/nodepanels-probe-linux-amd64"
+	DAEMON_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/daemon/prod/${DAEMON_VERSION}/nodepanels-daemon-linux-amd64"
 elif [ `uname -m` = "aarch32" ] ; then
-	PROBE_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/prod/nodepanels-probe-linux-arm32"
-	DAEMON_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/daemon/prod/nodepanels-daemon-linux-arm32"
+	PROBE_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/prod/${PROBE_VERSION}/nodepanels-probe-linux-arm"
+	DAEMON_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/daemon/prod/${DAEMON_VERSION}/nodepanels-daemon-linux-arm32"
 elif [ `uname -m` = "aarch64" ] ; then
-	PROBE_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/prod/nodepanels-probe-linux-arm64"
-	DAEMON_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/daemon/prod/nodepanels-daemon-linux-arm64"
+	PROBE_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/prod/${PROBE_VERSION}/nodepanels-probe-linux-arm64"
+	DAEMON_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/daemon/prod/${DAEMON_VERSION}/nodepanels-daemon-linux-arm64"
+elif [ `uname -m` = "mips" ] ; then
+	PROBE_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/prod/${PROBE_VERSION}/nodepanels-probe-linux-mips"
+	DAEMON_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/daemon/prod/${DAEMON_VERSION}/nodepanels-daemon-linux-mips"
+elif [ `uname -m` = "mips64" ] ; then
+	PROBE_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/prod/${PROBE_VERSION}/nodepanels-probe-linux-mips64"
+	DAEMON_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/daemon/prod/${DAEMON_VERSION}/nodepanels-daemon-linux-mips64"
+elif [ `uname -m` = "ppc64le" ] ; then
+	PROBE_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/prod/${PROBE_VERSION}/nodepanels-probe-linux-ppc64le"
+	DAEMON_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/daemon/prod/${DAEMON_VERSION}/nodepanels-daemon-linux-ppc64le"
+elif [ `uname -m` = "riscv64" ] ; then
+	PROBE_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/prod/${PROBE_VERSION}/nodepanels-probe-linux-riscv64"
+	DAEMON_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/daemon/prod/${DAEMON_VERSION}/nodepanels-daemon-linux-riscv64"
+elif [ `uname -m` = "s390x" ] ; then
+	PROBE_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/probe/prod/${PROBE_VERSION}/nodepanels-probe-linux-s390x"
+	DAEMON_DOWNLOAD_URL="https://nodepanels-file-1256221051.cos.accelerate.myqcloud.com/daemon/prod/${DAEMON_VERSION}/nodepanels-daemon-linux-s390x"
 else
 	echo "$(date +"%Y-%m-%d %T") The system is not supported for the time being"
 	exit
@@ -137,14 +153,18 @@ chmod +x ${PROBE_PATH}/${DAEMON_NAME}
 echo "$(date +"%Y-%m-%d %T") Grant daemon success"
 
 #Create config file
-echo "{\"serverId\":\""$1"\"}" >> ${PROBE_PATH}/config
+echo "{\"serverId\":\""$1"\"}" >> ${PROBE_PATH}/config.json
 echo "$(date +"%Y-%m-%d %T") Create config file success"
 
 #Register as a service
 ${PROBE_PATH}/${PROBE_NAME} -install
 ${PROBE_PATH}/${DAEMON_NAME} -install
 
-systemctl restart nodepanels-daemon
+systemctl enable ${PROBE_SERVICE_NAME}
+systemctl enable ${DAEMON_SERVICE_NAME}
+
+systemctl restart ${PROBE_SERVICE_NAME}
+systemctl restart ${DAEMON_SERVICE_NAME}
 
 echo "$(date +"%Y-%m-%d %T") Install success"
 
