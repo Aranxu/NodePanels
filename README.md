@@ -30,6 +30,17 @@
 详细更新记录：<a href="https://nodepanels.com/info/change" target="_blank">https://nodepanels.com/info/change</a>
 
 <details>
+  <summary>2022-06</summary>
+  <br>
+  <ul>
+    <li>磁盘管理增加磁盘使用率历史数据</li>
+    <li>支持磁盘告警</li>
+    <li>修改告警规则操作方式，可批量设置</li>
+    <li>移动端展示网络速率</li>
+  </ul>
+</details>
+
+<details>
   <summary>2022-05</summary>
   <br>
   <ul>
