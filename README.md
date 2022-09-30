@@ -30,6 +30,14 @@
 详细更新记录：<a href="https://nodepanels.com/info/change" target="_blank">https://nodepanels.com/info/change</a>
 
 <details>
+  <summary>2022-09</summary>
+  <br>
+  <ul>
+    <li>修改添加服务器方式，支持免配置添加</li>
+  </ul>
+</details>
+
+<details>
   <summary>2022-06</summary>
   <br>
   <ul>
@@ -264,7 +272,7 @@
 </details>
 
 ## 总进度
-### 一阶段（2022-06-01更新）
+### 一阶段（2022-10-01更新）
 类目|状态|进度
 --|:--:|--:
 首页|已完成|===================================100%
