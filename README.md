@@ -30,6 +30,14 @@
 详细更新记录：<a href="https://nodepanels.com/info/change" target="_blank">https://nodepanels.com/info/change</a>
 
 <details>
+  <summary>2022-11</summary>
+  <br>
+  <ul>
+    <li>增加webhook告警通知方式</li>
+  </ul>
+</details>
+
+<details>
   <summary>2022-09</summary>
   <br>
   <ul>
