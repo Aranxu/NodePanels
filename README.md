@@ -7,6 +7,10 @@
 <a href="https://nodepanels-1256221051.file.myqcloud.com/web/static/pic/wechat_qrcode.jpg" target="_blank"><img src="https://s4.ax1x.com/2022/03/01/bQlWy6.png" alt="bQlWy6.png" border="0" /></a>
 <a href="mailto:support@nodepanels.com"><img src="https://s4.ax1x.com/2022/03/01/bQ1AXV.png" alt="bQ1AXV.png" border="0" /></a>
 
+*沉寂半年，将再次起航。之前因为团队原因，停止更新了大半年，期间只保证了基础服务的正常运行。
+
+*现在将继续迭代，做出更完善的产品，APP也在计划中，将成为后期移动端的侧重点
+
 ## 网站： https://nodepanels.com
 
 探针包：https://github.com/Aranxu/Nodepanels-probe
